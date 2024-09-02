@@ -24,21 +24,23 @@
 
     /* define welcome message trial */
     var welcome = {
-      type: "html-keyboard-response",
-      stimulus: "準備ができたら何かキーを押してください."
+      type: "html-button-response",
+      stimulus: "準備ができたら下のボタンを押してください.",
+      choices: ["start"]
     };
     timeline.push(welcome);
 
     /* define instructions trial */
     var instructions = {
-      type: "html-keyboard-response",
+      type: "html-button-response",
       stimulus: `
       <div>
         <p>この実験では色のついた文字が表示されます。</p>
         <p>文字についた<strong>色</strong>を判断し、できるだけ早く色に対応したボタンを押してください。</p>
         </div>
-        <p>何かキーを押して始めましょう</p>
+        <p>下のボタンを押して始めましょう</p>
       `,
+      choices:["start"],
       post_trial_gap: 2000
     };
     timeline.push(instructions);
@@ -63,9 +65,8 @@
     var fixation = {
       type: 'html-keyboard-response',
       stimulus: '<div style="font-size:60px;">+</div>',
-      choices: jsPsych.NO_KEYS,
       trial_duration: function(){
-        return jsPsych.randomization.sampleWithoutReplacement([250, 500, 750, 1000, 1250, 1500, 1750, 2000], 1)[0];
+        return jsPsych.randomization.sampleWithoutReplacement([250, 500, 750, 1000, 1250], 1)[0];
       },
       data: {
         task: 'fixation'
@@ -88,7 +89,7 @@
     var test_procedure = {
       timeline: [fixation, test],
       timeline_variables: exp_text,
-      repetitions: 1,
+      repetitions: 5,
       randomize_order: true
     }
     timeline.push(test_procedure);
