@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My experiment</title>
+    <script src="jspsych-6.3.1/jspsych.js"></script>
+    <script src="jspsych-6.3.1/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="jspsych-6.3.1/plugins/jspsych-image-keyboard-response.js"></script>
+    <script src="jspsych-6.3.1/plugins/jspsych-html-button-response.js"></script>
+    <script src="jspsych-6.3.1/plugins/jspsych-preload.js"></script>
+    <link href="jspsych-6.3.1/css/jspsych.css" rel="stylesheet" type="text/css">
+  </head>
+  <body></body>
+  <script>
+
+    /* create timeline */
+    var timeline = [];
+
+    /* preload images */
+    var preload = {
+      type: 'preload',
+      images: ['jspsych-6.3.1/examples/img/blue.png', 'jspsych-6.3.1/examples/img/orange.png']
+    }
+    timeline.push(preload);
+
+    /* define welcome message trial */
+    var welcome = {
+      type: "html-button-response",
+      stimulus: "準備ができたら下のボタンを押してください.",
+      choices: ["start"]
+    };
+    timeline.push(welcome);
+
+    /* define instructions trial */
+    var instructions = {
+      type: "html-button-response",
+      stimulus: `
+      <div>
+        <p>この実験では色のついた文字が表示されます。</p>
+        <p>文字についた<strong>色</strong>を判断し、できるだけ早く色に対応したボタンを押してください。</p>
+        </div>
+        <p>下のボタンを押して始めましょう</p>
+      `,
+      choices:["start"],
+      post_trial_gap: 2000
+    };
+    timeline.push(instructions);
+
+    /* test trials */
+    var test_stimuli = [
+      { stimulus: "jspsych-6.3.1/examples/img/blue.png",  correct_response: 'f'},
+      { stimulus: "jspsych-6.3.1/examples/img/orange.png",  correct_response: 'j'}
+    ];
+
+    var exp_text = [
+        {stimulus: '<br><p style="color: green; font-size: 48px;">青', correct_response: 2},
+        {stimulus: '<br><p style="color: blue; font-size: 48px;">赤', correct_response: 0},
+        {stimulus: '<br><p style="color: red; font-size: 48px;">青', correct_response: 1},
+        {stimulus: '<br><p style="color: blue; font-size: 48px;">緑', correct_response: 0},
+        {stimulus: '<br><p style="color: red; font-size: 48px;">緑', correct_response: 1},
+        {stimulus: '<br><p style="color: green; font-size: 48px;">赤', correct_response: 2}
+    ]
+
+  
+
+    var fixation = {
+      type: 'html-keyboard-response',
+      stimulus: '<div style="font-size:60px;">+</div>',
+      trial_duration: function(){
+        return jsPsych.randomization.sampleWithoutReplacement([250, 500, 750, 1000, 1250], 1)[0];
+      },
+      data: {
+        task: 'fixation'
+      }
+    }
+
+    var test = {
+      type: "html-button-response",
+      stimulus: jsPsych.timelineVariable('stimulus'),
+      choices: ['青', '赤', '緑'],
+      data: {
+        task: 'response',
+        correct_response: jsPsych.timelineVariable('correct_response')
+      },
+      on_finish: function(data){
+        data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+      }
+    }
+
+    var test_procedure = {
+      timeline: [fixation, test],
+      timeline_variables: exp_text,
+      repetitions: 5,
+      randomize_order: true
+    }
+    timeline.push(test_procedure);
+
+    /* define debrief */
+
+    var debrief_block = {
+      type: "html-keyboard-response",
+      stimulus: function() {
+
+        var trials = jsPsych.data.get().filter({task: 'response'});
+        var correct_trials = trials.filter({correct: true});
+        var accuracy = Math.round(correct_trials.count() / trials.count() * 100);
+        var rt = Math.round(correct_trials.select('rt').mean());
+
+        return `<p>正答率は ${accuracy}% でした.</p>
+          <p>平均反応時間は ${rt}ms でした</p>
+          <p>ありがとうございました。データをメモしてからキーを押して実験を終了してください。</p>`;
+
+      }
+    };
+    timeline.push(debrief_block);
+
+    /* start the experiment */
+    jsPsych.init({
+      timeline: timeline,
+      on_finish: function() {
+        jsPsych.data.displayData();
+      }
+    });
+
+    </script>
+</html>
